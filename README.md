@@ -11,3 +11,7 @@ git commit -m "commit message"
 git push -u origin master
 or
 git push
+
+#to create venv and activiate 
+python -m venv env
+source env/Scripts/activiate
