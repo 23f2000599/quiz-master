@@ -38,8 +38,9 @@ class Quiz(db.Model):
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    question_text = db.Column(db.Text, nullable=False)
-    marks = db.Column(db.Integer,default=1)
+    title = db.Column(db.String(200))
+    question = db.Column(db.Text)
+    marks = db.Column(db.Integer, default=1)
     options = db.relationship('Option', backref='question', cascade="all, delete-orphan", lazy=True)
 
 

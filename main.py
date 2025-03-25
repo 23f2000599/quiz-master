@@ -5,7 +5,7 @@ from apis import configure_routes
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///quiz_app.db'
-
+app.secret_key='kadavulekaapathu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
