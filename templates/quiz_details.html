@@ -1,0 +1,152 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .details-card {
+            max-width: 600px;
+            margin: 30px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card details-card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Quiz Details</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th width="40%">Quiz ID</th>
+                            <td>#{{ quiz_data.Quiz.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Subject</th>
+                            <td>{{ quiz_data.Subject.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Chapter</th>
+                            <td>{{ quiz_data.Chapter.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Number of Questions</th>
+                            <td>{{ quiz_data.question_count }}</td>
+                        </tr>
+                        <tr>
+                            <th>Scheduled Date</th>
+                            <td>{{ quiz_data.Quiz.date_of_quiz.strftime('%B %d, %Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td>{{ quiz_data.Quiz.time_duration }} minutes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                {% if quiz_data.Quiz.date_of_quiz == today %}
+                <a href="{{ url_for('start_quiz', quiz_id=quiz_data.Quiz.id) }}" class="btn btn-primary">Start Quiz</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .quiz-details-card {
+            max-width: 800px;
+            margin: 50px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .detail-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card quiz-details-card">
+            <div class="card-header">
+                <h2 class="text-center">Quiz Details</h2>
+            </div>
+            <div class="card-body">
+                <div class="detail-section">
+                    <h4>General Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Subject:</strong> {{ quiz_data.Subject.name }}</p>
+                            <p><strong>Chapter:</strong> {{ quiz_data.Chapter.name }}</p>
+                            <p><strong>Quiz ID:</strong> {{ quiz_data.Quiz.id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Date:</strong> {{ quiz_data.Quiz.date_of_quiz.strftime('%B %d, %Y') }}</p>
+                            <p><strong>Duration:</strong> {{ quiz_data.Quiz.time_duration }}</p>
+                            <p><strong>Total Questions:</strong> {{ quiz_data.question_count }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if quiz_data.Quiz.remarks %}
+                <div class="detail-section">
+                    <h4>Remarks</h4>
+                    <p>{{ quiz_data.Quiz.remarks }}</p>
+                </div>
+                {% endif %}
+
+                {% if user_score %}
+                <div class="detail-section">
+                    <h4>Your Performance</h4>
+                    <p><strong>Score:</strong> {{ user_score.score }}%</p>
+                    <p><strong>Attempt Date:</strong> {{ user_score.time_stamp.strftime('%B %d, %Y %I:%M %p') }}</p>
+                    <div class="alert {% if user_score.score >= 80 %}alert-success{% elif user_score.score >= 50 %}alert-warning{% else %}alert-danger{% endif %}">
+                        {% if user_score.score >= 80 %}
+                            Excellent performance!
+                        {% elif user_score.score >= 50 %}
+                            Good effort! Keep improving.
+                        {% else %}
+                            You might want to review this material.
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary me-2">Back to Dashboard</a>
+                    
+                    {% if not user_score and quiz_data.Quiz.date_of_quiz == today %}
+                        <a href="{{ url_for('start_quiz', quiz_id=quiz_data.Quiz.id) }}" 
+                           class="btn btn-primary">Start Quiz</a>
+                    {% elif quiz_data.Quiz.date_of_quiz > today %}
+                        <button class="btn btn-outline-secondary" disabled>Coming Soon</button>
+                    {% elif not user_score %}
+                        <button class="btn btn-secondary" disabled>Expired</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
