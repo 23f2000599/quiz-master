@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Quiz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'admin_navbar.html' %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Edit Quiz</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="chapter_id" class="form-label">Chapter</label>
+                                <select class="form-select" id="chapter_id" name="chapter_id" required>
+                                    {% for chapter in chapters %}
+                                    <option value="{{ chapter.id }}"
+                                            {% if chapter.id == quiz.chapter_id %}selected{% endif %}>
+                                        {{ chapter.name }} ({{ chapter.subject.name }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="date_of_quiz" class="form-label">Quiz Date</label>
+                                <input type="date" class="form-control" id="date_of_quiz" 
+                                       name="date_of_quiz" 
+                                       value="{{ quiz.date_of_quiz.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="time_duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="time_duration" 
+                                       name="time_duration" value="{{ quiz.time_duration }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <textarea class="form-control" id="remarks" name="remarks" 
+                                          rows="3">{{ quiz.remarks or '' }}</textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Update Quiz</button>
+                                <a href="{{ url_for('admin_quiz') }}" 
+                                   class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

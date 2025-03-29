@@ -115,23 +115,7 @@
                 </div>
                 {% endif %}
 
-                {% if user_score %}
-                <div class="detail-section">
-                    <h4>Your Performance</h4>
-                    <p><strong>Score:</strong> {{ user_score.score }}%</p>
-                    <p><strong>Attempt Date:</strong> {{ user_score.time_stamp.strftime('%B %d, %Y %I:%M %p') }}</p>
-                    <div class="alert {% if user_score.score >= 80 %}alert-success{% elif user_score.score >= 50 %}alert-warning{% else %}alert-danger{% endif %}">
-                        {% if user_score.score >= 80 %}
-                            Excellent performance!
-                        {% elif user_score.score >= 50 %}
-                            Good effort! Keep improving.
-                        {% else %}
-                            You might want to review this material.
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
+                
                 <div class="text-center mt-4">
                     <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary me-2">Back to Dashboard</a>
                     

@@ -486,7 +486,7 @@ def configure_routes(app):
         if user.role != 'admin':
             db.session.delete(user)
             db.session.commit()
-            flash('User has been deleted successfully.', 'success')
+            # flash('User has been deleted successfully.', 'success')
         else:
             flash('Cannot delete admin users.', 'error')
         return redirect(url_for('admin_dashboard'))
@@ -840,7 +840,7 @@ def configure_routes(app):
             if request.method == 'POST':
                 chapter.name = request.form['name']
                 db.session.commit()
-                flash('Chapter updated successfully!', 'success')
+                # flash('Chapter updated successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             return render_template('edit_chapter.html', chapter=chapter)
 
@@ -849,7 +849,7 @@ def configure_routes(app):
             chapter = Chapter.query.get_or_404(chapter_id)
             db.session.delete(chapter)
             db.session.commit()
-            flash('Chapter deleted successfully!', 'success')
+            # flash('Chapter deleted successfully!', 'success')
             return redirect(url_for('admin_dashboard'))
     @app.route('/subject/add', methods=['GET', 'POST'])
     def add_subject():
@@ -859,7 +859,7 @@ def configure_routes(app):
                 new_subject = Subject(name=subject_name, description=subject_description)
                 db.session.add(new_subject)
                 db.session.commit()
-                flash('Subject added successfully!', 'success')
+                # flash('Subject added successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             return render_template('add_subject.html')
     @app.route('/chapter/add/<int:subject_id>', methods=['GET', 'POST'])
@@ -876,7 +876,7 @@ def configure_routes(app):
                 )
                 db.session.add(new_chapter)
                 db.session.commit()
-                flash('Chapter added successfully!', 'success')
+                # flash('Chapter added successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             
             return render_template('add_chapter.html', subject=subject)
@@ -965,7 +965,7 @@ def configure_routes(app):
                 db.session.add(new_quiz)
                 db.session.commit()
                 
-                flash('Quiz created successfully!', 'success')
+                # flash('Quiz created successfully!', 'success')
                 return redirect(url_for('admin_quiz'))
             
             chapters = Chapter.query.all()
@@ -1002,7 +1002,7 @@ def configure_routes(app):
                     db.session.add(option)
                 
                 db.session.commit()
-                flash('Question added successfully!', 'success')
+                # flash('Question added successfully!', 'success')
                 return redirect(url_for('view_quiz_questions', quiz_id=quiz_id))
             
             return render_template('add_question.html', quiz=quiz)
@@ -1031,7 +1031,7 @@ def configure_routes(app):
                 db.session.add(option)
                 
             db.session.commit()
-            flash('Question updated successfully!', 'success')
+            # flash('Question updated successfully!', 'success')
             return redirect(url_for('view_quiz_questions', quiz_id=question.quiz_id))
             
         return render_template('edit_questions.html', question=question)
@@ -1044,5 +1044,116 @@ def configure_routes(app):
         db.session.delete(question)
         db.session.commit()
         
-        flash('Question deleted successfully!', 'success')
+        # flash('Question deleted successfully!', 'success')
         return redirect(url_for('view_quiz_questions', quiz_id=quiz_id))
+    @app.route('/edit_subject/<int:subject_id>', methods=['GET', 'POST'])
+    def edit_subject(subject_id):
+        subject = Subject.query.get_or_404(subject_id)
+        if request.method == 'POST':
+            subject.name = request.form.get('subject_name')
+            db.session.commit()
+            return """
+                <script>
+                    alert('Subject updated successfully!');
+                    window.location.href = '/admin/dashboard';
+                </script>
+            """
+        return render_template('edit_subject.html', subject=subject)
+
+    @app.route('/delete_subject/<int:subject_id>')
+    def delete_subject(subject_id):
+        subject = Subject.query.get_or_404(subject_id)
+        
+        try:
+            # Get all chapters for this subject
+            chapters = Chapter.query.filter_by(subject_id=subject_id).all()
+            
+            # For each chapter, delete associated quizzes and their data
+            for chapter in chapters:
+                # Get all quizzes for this chapter
+                quizzes = Quiz.query.filter_by(chapter_id=chapter.id).all()
+                
+                for quiz in quizzes:
+                    # Delete quiz questions and options
+                    questions = Question.query.filter_by(quiz_id=quiz.id).all()
+                    for question in questions:
+                        Option.query.filter_by(question_id=question.id).delete()
+                    Question.query.filter_by(quiz_id=quiz.id).delete()
+                    
+                    # Delete quiz scores
+                    Score.query.filter_by(quiz_id=quiz.id).delete()
+                    
+                    # Delete the quiz
+                    db.session.delete(quiz)
+            
+            # Delete all chapters for this subject
+            Chapter.query.filter_by(subject_id=subject_id).delete()
+            
+            # Finally delete the subject
+            db.session.delete(subject)
+            db.session.commit()
+            
+            return """
+                <script>
+                    alert('Subject and all associated data deleted successfully!');
+                    window.location.href = '/admin/dashboard';
+                </script>
+            """
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error deleting subject: {str(e)}")  # For debugging
+            return """
+                <script>
+                    alert('Error deleting subject. Please try again.');
+                    window.location.href = '/admin_quiz';
+                </script>
+            """
+
+
+    @app.route('/edit_quiz/<int:quiz_id>', methods=['GET', 'POST'])
+    def edit_quiz(quiz_id):
+        quiz = Quiz.query.get_or_404(quiz_id)
+        # Get all chapters with their subjects
+        chapters = db.session.query(Chapter).join(Subject).all()
+        
+        if request.method == 'POST':
+            try:
+                quiz.chapter_id = request.form.get('chapter_id')
+                quiz.date_of_quiz = datetime.strptime(request.form.get('date_of_quiz'), '%Y-%m-%d')
+                quiz.time_duration = request.form.get('time_duration')
+                quiz.remarks = request.form.get('remarks', '')
+                
+                db.session.commit()
+                return """
+                    <script>
+                        alert('Quiz updated successfully!');
+                        window.location.href = '/admin/quiz';
+                    </script>
+                """
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error updating quiz: {str(e)}")
+                return """
+                    <script>
+                        alert('Error updating quiz. Please try again.');
+                        window.location.href = '/edit_quiz/{}';
+                    </script>
+                """.format(quiz_id)
+                
+        return render_template('edit_quiz.html', quiz=quiz, chapters=chapters)
+
+    @app.route('/delete_quiz/<int:quiz_id>')
+    def delete_quiz(quiz_id):
+        quiz = Quiz.query.get_or_404(quiz_id)
+        # Delete associated questions first
+        Question.query.filter_by(quiz_id=quiz_id).delete()
+        # Delete quiz scores
+        Score.query.filter_by(quiz_id=quiz_id).delete()
+        db.session.delete(quiz)
+        db.session.commit()
+        return """
+            <script>
+                alert('Quiz and all associated data deleted successfully!');
+                window.location.href = '/admin/quiz';
+            </script>
+        """
