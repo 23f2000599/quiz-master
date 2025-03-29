@@ -26,23 +26,28 @@ def login_required(f):
     return decorated_function
 def configure_routes(app):
     @app.route("/")
-    def hello_world():
+    def home():
         return render_template("index.html")
+    def validate_password(password):
+        """Common password validation function"""
+        if len(password) < 8:
+            return False, "Password must be at least 8 characters long"
 
-    @app.route('/login', methods=['GET', 'POST'])
-    def login():
-        if request.method == 'POST':
-            email = request.form['email']
-            password = request.form['password']
-            user = User.query.filter_by(email=email).first()
-            if user and user.password == password:
-                session['user_id'] = user.id
-                if user.role == 'admin':
-                    return redirect(url_for('admin_dashboard'))
-                else:
-                    return redirect(url_for('user_dashboard'))
-        return render_template('login.html')
-    
+        if not any(c.isupper() for c in password):
+            return False, "Password must contain at least one uppercase letter"
+
+        if not any(c.islower() for c in password):
+            return False, "Password must contain at least one lowercase letter"
+
+        if not any(c.isdigit() for c in password):
+            return False, "Password must contain at least one number"
+
+        special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+        if not any(c in special_chars for c in password):
+            return False, "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)"
+
+        return True, "Password is valid"
+
     @app.route('/signup', methods=['GET', 'POST'])
     def signup():
         if request.method == 'POST':
@@ -51,11 +56,294 @@ def configure_routes(app):
             fullname = request.form['fullname']
             qualification = request.form['qualification']
             dob = request.form['dob']
-            user = User(email=email, password=password, role='user' , username=fullname, qualification=qualification, dob=dob)
+
+            # Password validation
+            is_valid, message = validate_password(password)
+            if not is_valid:
+                return f"""
+                    <script>
+                        alert('{message}');
+                        window.location.href = '/signup';
+                    </script>
+                """
+
+            # Check if user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                return """
+                    <script>
+                        alert('Email already registered!');
+                        window.location.href = '/signup';
+                    </script>
+                """
+
+            user = User(email=email, password=password, role='user', 
+                    username=fullname, qualification=qualification, dob=dob)
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('login'))
         return render_template('signup.html')
+
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        if request.method == 'POST':
+            email = request.form['username']  # Form field name is 'username'
+            password = request.form['password']
+            
+            # Find user by email or username
+            user = User.query.filter(
+                db.or_(
+                    User.email == email,
+                    User.username == email
+                )
+            ).first()
+
+            if user and user.password == password:  # In production, use proper password hashing
+                session['user_id'] = user.id
+                if user.role == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                else:
+                    return redirect(url_for('user_dashboard'))
+            else:
+                return """
+                    <script>
+                        alert('Invalid credentials!');
+                        window.location.href = '/login';
+                    </script>
+                """
+        return render_template('login.html')
+
+    @app.route('/forgot-password', methods=['GET', 'POST'])
+    def forgot_password():
+        if request.method == 'POST':
+            try:
+                username_or_email = request.form.get('email')
+                new_password = request.form.get('new_password')
+                confirm_password = request.form.get('confirm_password')
+                
+                # Check if passwords match
+                if new_password != confirm_password:
+                    return """
+                        <script>
+                            alert('Passwords do not match!');
+                            window.location.href = '/forgot-password';
+                        </script>
+                    """
+
+                # Password validation
+                is_valid, message = validate_password(new_password)
+                if not is_valid:
+                    return f"""
+                        <script>
+                            alert('{message}');
+                            window.location.href = '/forgot-password';
+                        </script>
+                    """
+
+                # Find user by email or username
+                user = User.query.filter(
+                    db.or_(
+                        User.email == username_or_email,
+                        User.username == username_or_email
+                    )
+                ).first()
+                
+                if not user:
+                    return """
+                        <script>
+                            alert('Account not found!');
+                            window.location.href = '/forgot-password';
+                        </script>
+                    """
+                    
+                # Update password
+                user.password = new_password
+                db.session.commit()
+                
+                return """
+                    <script>
+                        alert('Password updated successfully!');
+                        window.location.href = '/login';
+                    </script>
+                """
+                
+            except Exception as e:
+                return """
+                    <script>
+                        alert('An error occurred. Please try again.');
+                        window.location.href = '/forgot-password';
+                    </script>
+                """
+                
+        return render_template('forgot_password.html')
+
+    # @app.route('/forgot-password', methods=['GET', 'POST'])
+    # def forgot_password():
+    #     if request.method == 'POST':
+    #         try:
+    #             username_or_email = request.form.get('email')
+    #             new_password = request.form.get('new_password')
+    #             confirm_password = request.form.get('confirm_password')
+                
+    #             # Check if passwords match
+    #             if new_password != confirm_password:
+    #                 return """
+    #                     <script>
+    #                         alert('Passwords do not match!');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Password validation
+    #             if len(new_password) < 8:
+    #                 return """
+    #                     <script>
+    #                         alert('Password must be at least 8 characters long');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Check for uppercase
+    #             if not any(c.isupper() for c in new_password):
+    #                 return """
+    #                     <script>
+    #                         alert('Password must contain at least one uppercase letter');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Check for lowercase
+    #             if not any(c.islower() for c in new_password):
+    #                 return """
+    #                     <script>
+    #                         alert('Password must contain at least one lowercase letter');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Check for digits
+    #             if not any(c.isdigit() for c in new_password):
+    #                 return """
+    #                     <script>
+    #                         alert('Password must contain at least one number');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Check for special characters
+    #             special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    #             if not any(c in special_chars for c in new_password):
+    #                 return """
+    #                     <script>
+    #                         alert('Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+
+    #             # Find user by email or username
+    #             user = User.query.filter(
+    #                 db.or_(
+    #                     User.email == username_or_email,
+    #                     User.username == username_or_email
+    #                 )
+    #             ).first()
+                
+    #             if not user:
+    #                 return """
+    #                     <script>
+    #                         alert('Account not found!');
+    #                         window.location.href = '/forgot-password';
+    #                     </script>
+    #                 """
+                    
+    #             # Update password
+    #             user.password = new_password
+    #             db.session.commit()
+                
+    #             return """
+    #                 <script>
+    #                     alert('Password updated successfully!');
+    #                     window.location.href = '/login';
+    #                 </script>
+    #             """
+                
+    #         except Exception as e:
+    #             return """
+    #                 <script>
+    #                     alert('An error occurred. Please try again.');
+    #                     window.location.href = '/forgot-password';
+    #                 </script>
+    #             """
+                
+    #     return render_template('forgot_password.html')
+
+
+    # def is_valid_password(password):
+    #     """
+    #     Validate password meets requirements:
+    #     - At least 8 characters long
+    #     - Contains at least one uppercase letter
+    #     - Contains at least one lowercase letter
+    #     - Contains at least one number
+    #     - Contains at least one special character
+    #     """
+    #     if len(password) < 8:
+    #         return False
+        
+    #     has_upper = False
+    #     has_lower = False
+    #     has_digit = False
+    #     has_special = False
+    #     special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+        
+    #     for char in password:
+    #         if char.isupper():
+    #             has_upper = True
+    #         elif char.islower():
+    #             has_lower = True
+    #         elif char.isdigit():
+    #             has_digit = True
+    #         elif char in special_chars:
+    #             has_special = True
+        
+    #     return all([has_upper, has_lower, has_digit, has_special])
+
+
+
+    # @app.route('/login', methods=['GET', 'POST'])
+    # def login():
+    #     if request.method == 'POST':
+    #         username_or_email = request.form['username']
+    #         password = request.form['password']
+    #         # user = User.query.filter_by(email=email).first()
+    #         user = User.query.filter(
+    #                 db.or_(
+    #                     User.email == username_or_email,
+    #                     User.username == username_or_email
+    #                 )
+    #             ).first()
+                
+    #         if user and user.password == password:
+    #             session['user_id'] = user.id
+    #             if user.role == 'admin':
+    #                 return redirect(url_for('admin_dashboard'))
+    #             else:
+    #                 return redirect(url_for('user_dashboard'))
+    #     return render_template('login.html')
+    
+    # @app.route('/signup', methods=['GET', 'POST'])
+    # def signup():
+    #     if request.method == 'POST':
+    #         email = request.form['email']
+    #         password = request.form['password']
+    #         fullname = request.form['fullname']
+    #         qualification = request.form['qualification']
+    #         dob = request.form['dob']
+    #         user = User(email=email, password=password, role='user' , username=fullname, qualification=qualification, dob=dob)
+    #         db.session.add(user)
+    #         db.session.commit()
+    #         return redirect(url_for('login'))
+    #     return render_template('signup.html')
 
     from datetime import date
     @app.route('/quiz/start/<int:quiz_id>')
