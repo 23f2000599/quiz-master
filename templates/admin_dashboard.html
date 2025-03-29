@@ -92,6 +92,8 @@
     </style>
 </head>
 <body>
+    {% include 'admin_navbar.html' %}
+
     {% for subject in subjects %}
     <div class="subject-container">
         <h2 class="subject-header">{{ subject.name }}</h2>
@@ -138,5 +140,10 @@
     <div class="add-subject-container">
         <a href="{{ url_for('add_subject') }}" class="add-subject-btn">Add Subject</a>
     </div>
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -21,6 +21,7 @@
     </style>
 </head>
 <body>
+    {% include 'user_navbar.html' %}
     <!-- Quiz Header -->
     <div class="quiz-header">
         <div class="container">
@@ -59,8 +60,7 @@
                         </div>
                     </div>
                     <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" 
-                             style="width: {{ (current_question / total_questions) * 100 }}%;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ (current_question / total_questions) * 100 }}%;">
                             {{ ((current_question / total_questions) * 100)|round|int }}%
                         </div>
                     </div>
@@ -165,5 +165,10 @@
             window.history.replaceState(null, null, window.location.href);
         }
     </script>
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>

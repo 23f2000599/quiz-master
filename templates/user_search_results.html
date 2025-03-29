@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Search Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .search-results {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .table-responsive {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-header {
+            margin-bottom: 2rem;
+        }
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 0.5em 0.8em;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    {% include 'admin_navbar.html' %}
+
+    <div class="container search-results">
+        <div class="search-header">
+            <h2>
+                <i class="fas fa-users"></i> User Search Results
+                <small class="text-muted">for "{{ query }}"</small>
+            </h2>
+        </div>
+
+        {% if results %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Qualification</th>
+                        <th>DOB</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in results %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar bg-primary text-white">
+                                    {{ user.username[0].upper() if user.username else 'U' }}
+                                </div>
+                                {{ user.username }}
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                                <span class="badge bg-danger">Admin</span>
+                            {% else %}
+                                <span class="badge bg-primary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.qualification if user.qualification else 'Not provided' }}</td>
+                        <td>{{ user.dob if user.dob else 'Not provided' }}</td>
+                        <td>
+                            {% if user.role != 'admin' %}
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal{{ user.id }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete User</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete user "{{ user.username }}"?
+                                            This action cannot be undone.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-results">
+            <i class="fas fa-users fa-3x mb-3"></i>
+            <h3>No users found</h3>
+            <p>Try different search terms or check your spelling</p>
+        </div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

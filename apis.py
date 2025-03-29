@@ -1,10 +1,20 @@
 from flask import Flask, render_template, request, url_for, redirect, flash, session, jsonify
+from flask_login import login_required, current_user
+from database import db, User, Subject, Chapter, Quiz, Question, Option, Score
+from flask import Flask, render_template, request, url_for, redirect, flash, session, jsonify
 from database import *
 from flask import render_template
 from database import db, Subject, Chapter, Question 
 from datetime import datetime, timedelta,date 
 from functools import wraps
 from flask import session, redirect, url_for, flash
+from flask_login import login_required, current_user
+from flask_login import LoginManager
+login_manager = LoginManager()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def login_required(f):
     @wraps(f)
@@ -137,6 +147,62 @@ def configure_routes(app):
                             quiz_data=quiz_data,
                             user_score=user_score,
                             today=today)
+
+    @app.route('/admin/search/quizzes')
+    @login_required
+    def admin_search_quizzes():
+        query = request.args.get('quiz_q', '')
+        if query:
+            search_results = Quiz.query.join(Chapter).join(Subject)\
+                .filter(
+                    db.or_(
+                        Chapter.name.ilike(f'%{query}%'),
+                        Subject.name.ilike(f'%{query}%')
+                    )
+                ).all()
+            return render_template('quiz_search_results.html',  # Changed from admin/quiz_search_results.html
+                                results=search_results, 
+                                query=query)
+        return redirect(url_for('admin_dashboard'))
+    @app.route('/admin/search/users')
+    @login_required
+    def admin_search_users():
+        query = request.args.get('user_q', '')
+        if query:
+            search_results = User.query.filter(
+                db.or_(
+                    User.username.ilike(f'%{query}%'),
+                    User.email.ilike(f'%{query}%')
+                )
+            ).all()
+            
+            # Format dates if needed
+            for user in search_results:
+                if user.dob:
+                    try:
+                        # Assuming dob is a datetime object
+                        user.dob = user.dob.strftime('%Y-%m-%d')
+                    except:
+                        pass
+                        
+            return render_template('user_search_results.html',
+                                results=search_results, 
+                                query=query)
+        return redirect(url_for('admin_dashboard'))
+
+
+    @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+    @login_required
+    def delete_user(user_id):
+        user = User.query.get_or_404(user_id)
+        if user.role != 'admin':
+            db.session.delete(user)
+            db.session.commit()
+            flash('User has been deleted successfully.', 'success')
+        else:
+            flash('Cannot delete admin users.', 'error')
+        return redirect(url_for('admin_dashboard'))
+
 
 
     @app.route('/user/dashboard', methods=['GET', 'POST'])
@@ -370,6 +436,110 @@ def configure_routes(app):
         #     today = date.today()
         #     return render_template('view_quiz.html', quiz_data=quiz_data, today=today)
 
+    @app.route('/search')
+    @login_required
+    def search_quizzes():
+        query = request.args.get('q', '')
+        if query:
+            # Search in quizzes, chapters, and subjects
+            search_results = db.session.query(Quiz, Chapter, Subject)\
+                .join(Chapter, Quiz.chapter_id == Chapter.id)\
+                .join(Subject, Chapter.subject_id == Subject.id)\
+                .filter(
+                    db.or_(
+                        Chapter.name.ilike(f'%{query}%'),
+                        Subject.name.ilike(f'%{query}%'),
+                        Chapter.description.ilike(f'%{query}%'),
+                        Subject.description.ilike(f'%{query}%')
+                    )
+                ).all()
+            
+            return render_template('search_results.html', 
+                                results=search_results, 
+                                query=query)
+        return redirect(url_for('user_dashboard'))
+    @app.route('/scores')
+    @login_required
+    def user_scores():
+        # Get all scores for the current user, ordered by timestamp (newest first)
+        scores = Score.query.filter_by(user_id=session['user_id'])\
+                        .order_by(Score.time_stamp.desc())\
+                        .all()
+        
+        return render_template('all_scores.html', scores=scores)
+
+
+    @app.route('/user/summary')
+    @login_required
+    def user_summary():
+        # Get user's subject-wise performance
+        subject_performance = db.session.query(
+            Subject.name,
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('attempt_count')
+        ).select_from(Subject)\
+        .join(Chapter, Chapter.subject_id == Subject.id)\
+        .join(Quiz, Quiz.chapter_id == Chapter.id)\
+        .join(Score, Score.quiz_id == Quiz.id)\
+        .filter(Score.user_id == session['user_id'])\
+        .group_by(Subject.name)\
+        .all()
+
+        # Get user's recent quiz attempts (last 5)
+        recent_attempts = db.session.query(
+            Quiz.id,
+            Chapter.name.label('chapter_name'),
+            Subject.name.label('subject_name'),
+            Score.score,
+            Score.time_stamp
+        ).select_from(Score)\
+        .join(Quiz, Score.quiz_id == Quiz.id)\
+        .join(Chapter, Quiz.chapter_id == Chapter.id)\
+        .join(Subject, Chapter.subject_id == Subject.id)\
+        .filter(Score.user_id == session['user_id'])\
+        .order_by(Score.time_stamp.desc())\
+        .limit(5)\
+        .all()
+
+        # Get user's performance trend (last 7 days)
+        from datetime import datetime, timedelta
+        seven_days_ago = datetime.now() - timedelta(days=7)
+        
+        daily_performance = db.session.query(
+            db.func.date(Score.time_stamp).label('date'),
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('attempts')
+        ).select_from(Score)\
+        .filter(Score.user_id == session['user_id'])\
+        .filter(Score.time_stamp >= seven_days_ago)\
+        .group_by(db.func.date(Score.time_stamp))\
+        .order_by(db.func.date(Score.time_stamp))\
+        .all()
+
+        # Calculate overall statistics
+        overall_stats = db.session.query(
+            db.func.count(Score.id).label('total_quizzes'),
+            db.func.avg(Score.score).label('average_score'),
+            db.func.max(Score.score).label('highest_score')
+        ).select_from(Score)\
+        .filter(Score.user_id == session['user_id'])\
+        .first()
+
+        # Handle the case when there are no scores yet
+        if not overall_stats.total_quizzes:
+            overall_stats = {
+                'total_quizzes': 0,
+                'average_score': 0,
+                'highest_score': 0
+            }
+
+        return render_template('user_summary.html',
+                            subject_performance=subject_performance,
+                            recent_attempts=recent_attempts,
+                            daily_performance=daily_performance,
+                            overall_stats=overall_stats)
+
+
 
     @app.route('/admin/dashboard' , methods=['GET', 'POST'])
     def admin_dashboard():
@@ -429,6 +599,67 @@ def configure_routes(app):
             quizzes = Quiz.query.all()
             chapters = Chapter.query.all()
             return render_template('admin_quiz.html', quizzes=quizzes, chapters=chapters)
+
+    # Route in your Flask application
+    @app.route('/admin/summary')
+    @login_required
+    def admin_summary():
+        # Subject-wise performance
+        subject_performance = db.session.query(
+            Subject.name,
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('attempt_count')
+        ).join(Chapter)\
+        .join(Quiz)\
+        .join(Score)\
+        .group_by(Subject.name)\
+        .all()
+
+        # Chapter-wise performance
+        chapter_performance = db.session.query(
+            Chapter.name,
+            Subject.name.label('subject_name'),
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('attempt_count')
+        ).join(Subject)\
+        .join(Quiz)\
+        .join(Score)\
+        .group_by(Chapter.name, Subject.name)\
+        .all()
+
+        # Time-based performance (last 7 days)
+        from datetime import datetime, timedelta
+        seven_days_ago = datetime.now() - timedelta(days=7)
+        
+        daily_performance = db.session.query(
+            db.func.date(Score.time_stamp).label('date'),
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('attempt_count')
+        ).filter(Score.time_stamp >= seven_days_ago)\
+        .group_by(db.func.date(Score.time_stamp))\
+        .order_by(db.func.date(Score.time_stamp))\
+        .all()
+
+        # Top performing students
+        top_students = db.session.query(
+            User.username,
+            db.func.avg(Score.score).label('average_score'),
+            db.func.count(Score.id).label('quiz_count')
+        ).join(Score)\
+        .group_by(User.id)\
+        .order_by(db.func.avg(Score.score).desc())\
+        .limit(5)\
+        .all()
+
+        return render_template('admin_summary.html',
+                            subject_performance=subject_performance,
+                            chapter_performance=chapter_performance,
+                            daily_performance=daily_performance,
+                            top_students=top_students)
+
+
+
+
 
     @app.route('/quiz/add', methods=['GET', 'POST'])
     def add_quiz():
