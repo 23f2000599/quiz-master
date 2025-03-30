@@ -73,6 +73,8 @@ For **Linux/Mac**:
 ```bash
 python3 -m venv env
 source env/bin/activate
+
+(The env, pyache and instance folders have been added to gitignore and hence not added to github)
 ```
 
 ### **3. Install Dependencies**  
