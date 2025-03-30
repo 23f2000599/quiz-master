@@ -1,9 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-
+from datetime import datetime
+import pytz
 db = SQLAlchemy()
 
-from flask_login import UserMixin
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,7 +33,7 @@ class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
     date_of_quiz =db.Column(db.Date)
-    time_duration = db.Column(db.String(10)) #format : hh:mm
+    time_duration = db.Column(db.String(10))
     remarks= db.Column(db.Text)
     questions= db.relationship('Question', backref='quiz', cascade="all, delete-orphan", lazy=True)
     scores = db.relationship('Score', backref='quiz', lazy=True)
@@ -53,9 +53,13 @@ class Option(db.Model):
     option_text = db.Column(db.Text, nullable=False)
     is_correct = db.Column(db.Boolean, default=False)
 
+
+
+IST = pytz.timezone('Asia/Kolkata')
+
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     score = db.Column(db.Integer, nullable=False)
-    time_stamp = db.Column(db.DateTime,server_default=db.func.current_timestamp(), nullable=False)
+    time_stamp = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(IST))

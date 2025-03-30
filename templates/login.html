@@ -58,7 +58,6 @@
 <body>
     <div class="content-wrapper">
         <div class="login-container">
-            <!-- Back to Home Button -->
             <div class="text-center mb-4">
                 <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Back to Home
@@ -66,43 +65,36 @@
             </div>
 
             <div class="login-card">
-                <!-- Login Header -->
                 <div class="login-header">
                     <i class="fas fa-user-circle login-icon"></i>
                     <h2>Welcome Back!</h2>
                     <p class="text-muted">Please login to your account</p>
                 </div>
 
-                <!-- Login Form -->
                 <form method="POST" action="{{ url_for('login') }}">
-                    <!-- Username/Email Field -->
                     <div class="form-floating">
                         <input type="text" class="form-control" id="username" name="username" 
                                placeholder="Username or Email" required>
                         <label for="username">Username or Email</label>
                     </div>
 
-                    <!-- Password Field -->
                     <div class="form-floating">
                         <input type="password" class="form-control" id="password" name="password" 
                                placeholder="Password" required>
                         <label for="password">Password</label>
                     </div>
 
-                    <!-- Remember Me & Forgot Password -->
                     <div class="d-flex justify-content-between mb-3">
                         <a href="{{ url_for('forgot_password') }}" class="text-primary text-decoration-none">
                             Forgot Password?
                         </a>
                     </div>
 
-                    <!-- Login Button -->
                     <button type="submit" class="btn btn-primary btn-login">
                         <i class="fas fa-sign-in-alt"></i> Login
                     </button>
                 </form>
 
-                <!-- Sign Up Link -->
                 <div class="signup-link">
                     <p class="mb-0">Don't have an account? 
                         <a href="{{ url_for('signup') }}" class="text-primary text-decoration-none">Sign Up</a>

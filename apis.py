@@ -12,6 +12,11 @@ from flask_login import login_required, current_user
 from flask_login import LoginManager
 from datetime import datetime, date
 login_manager = LoginManager()
+from datetime import datetime
+import pytz
+
+IST = pytz.timezone('Asia/Kolkata')
+current_time = datetime.now(IST)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -68,7 +73,6 @@ def configure_routes(app):
                     </script>
                 """
 
-            # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
                 return """
@@ -88,10 +92,9 @@ def configure_routes(app):
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if request.method == 'POST':
-            email = request.form['username']  # Form field name is 'username'
+            email = request.form['username']  
             password = request.form['password']
             
-            # Find user by email or username
             user = User.query.filter(
                 db.or_(
                     User.email == email,
@@ -99,7 +102,7 @@ def configure_routes(app):
                 )
             ).first()
 
-            if user and user.password == password:  # In production, use proper password hashing
+            if user and user.password == password: 
                 session['user_id'] = user.id
                 if user.role == 'admin':
                     return redirect(url_for('admin_dashboard'))
@@ -122,7 +125,7 @@ def configure_routes(app):
                 new_password = request.form.get('new_password')
                 confirm_password = request.form.get('confirm_password')
                 
-                # Check if passwords match
+            
                 if new_password != confirm_password:
                     return """
                         <script>
@@ -131,7 +134,6 @@ def configure_routes(app):
                         </script>
                     """
 
-                # Password validation
                 is_valid, message = validate_password(new_password)
                 if not is_valid:
                     return f"""
@@ -141,7 +143,6 @@ def configure_routes(app):
                         </script>
                     """
 
-                # Find user by email or username
                 user = User.query.filter(
                     db.or_(
                         User.email == username_or_email,
@@ -178,175 +179,6 @@ def configure_routes(app):
                 
         return render_template('forgot_password.html')
 
-    # @app.route('/forgot-password', methods=['GET', 'POST'])
-    # def forgot_password():
-    #     if request.method == 'POST':
-    #         try:
-    #             username_or_email = request.form.get('email')
-    #             new_password = request.form.get('new_password')
-    #             confirm_password = request.form.get('confirm_password')
-                
-    #             # Check if passwords match
-    #             if new_password != confirm_password:
-    #                 return """
-    #                     <script>
-    #                         alert('Passwords do not match!');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Password validation
-    #             if len(new_password) < 8:
-    #                 return """
-    #                     <script>
-    #                         alert('Password must be at least 8 characters long');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Check for uppercase
-    #             if not any(c.isupper() for c in new_password):
-    #                 return """
-    #                     <script>
-    #                         alert('Password must contain at least one uppercase letter');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Check for lowercase
-    #             if not any(c.islower() for c in new_password):
-    #                 return """
-    #                     <script>
-    #                         alert('Password must contain at least one lowercase letter');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Check for digits
-    #             if not any(c.isdigit() for c in new_password):
-    #                 return """
-    #                     <script>
-    #                         alert('Password must contain at least one number');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Check for special characters
-    #             special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
-    #             if not any(c in special_chars for c in new_password):
-    #                 return """
-    #                     <script>
-    #                         alert('Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-
-    #             # Find user by email or username
-    #             user = User.query.filter(
-    #                 db.or_(
-    #                     User.email == username_or_email,
-    #                     User.username == username_or_email
-    #                 )
-    #             ).first()
-                
-    #             if not user:
-    #                 return """
-    #                     <script>
-    #                         alert('Account not found!');
-    #                         window.location.href = '/forgot-password';
-    #                     </script>
-    #                 """
-                    
-    #             # Update password
-    #             user.password = new_password
-    #             db.session.commit()
-                
-    #             return """
-    #                 <script>
-    #                     alert('Password updated successfully!');
-    #                     window.location.href = '/login';
-    #                 </script>
-    #             """
-                
-    #         except Exception as e:
-    #             return """
-    #                 <script>
-    #                     alert('An error occurred. Please try again.');
-    #                     window.location.href = '/forgot-password';
-    #                 </script>
-    #             """
-                
-    #     return render_template('forgot_password.html')
-
-
-    # def is_valid_password(password):
-    #     """
-    #     Validate password meets requirements:
-    #     - At least 8 characters long
-    #     - Contains at least one uppercase letter
-    #     - Contains at least one lowercase letter
-    #     - Contains at least one number
-    #     - Contains at least one special character
-    #     """
-    #     if len(password) < 8:
-    #         return False
-        
-    #     has_upper = False
-    #     has_lower = False
-    #     has_digit = False
-    #     has_special = False
-    #     special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
-        
-    #     for char in password:
-    #         if char.isupper():
-    #             has_upper = True
-    #         elif char.islower():
-    #             has_lower = True
-    #         elif char.isdigit():
-    #             has_digit = True
-    #         elif char in special_chars:
-    #             has_special = True
-        
-    #     return all([has_upper, has_lower, has_digit, has_special])
-
-
-
-    # @app.route('/login', methods=['GET', 'POST'])
-    # def login():
-    #     if request.method == 'POST':
-    #         username_or_email = request.form['username']
-    #         password = request.form['password']
-    #         # user = User.query.filter_by(email=email).first()
-    #         user = User.query.filter(
-    #                 db.or_(
-    #                     User.email == username_or_email,
-    #                     User.username == username_or_email
-    #                 )
-    #             ).first()
-                
-    #         if user and user.password == password:
-    #             session['user_id'] = user.id
-    #             if user.role == 'admin':
-    #                 return redirect(url_for('admin_dashboard'))
-    #             else:
-    #                 return redirect(url_for('user_dashboard'))
-    #     return render_template('login.html')
-    
-    # @app.route('/signup', methods=['GET', 'POST'])
-    # def signup():
-    #     if request.method == 'POST':
-    #         email = request.form['email']
-    #         password = request.form['password']
-    #         fullname = request.form['fullname']
-    #         qualification = request.form['qualification']
-    #         dob = request.form['dob']
-    #         user = User(email=email, password=password, role='user' , username=fullname, qualification=qualification, dob=dob)
-    #         db.session.add(user)
-    #         db.session.commit()
-    #         return redirect(url_for('login'))
-    #     return render_template('signup.html')
-
-    from datetime import date
     @app.route('/quiz/start/<int:quiz_id>')
     @app.route('/quiz/start/<int:quiz_id>/<int:question_number>')
     @login_required
@@ -355,15 +187,16 @@ def configure_routes(app):
             db.joinedload(Quiz.chapter).joinedload(Chapter.subject),
             db.joinedload(Quiz.questions).joinedload(Question.options)
         ).get_or_404(quiz_id)
-        
-        # Initialize quiz session
+
         if 'quiz_start_time' not in session:
-            session['quiz_start_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            session['quiz_start_time'] = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
             session['answers'] = {}
         
-        # Calculate time left
         start_time = datetime.strptime(session['quiz_start_time'], '%Y-%m-%d %H:%M:%S')
-        time_elapsed = datetime.now() - start_time
+        start_time = IST.localize(start_time)
+        current_time = datetime.now(IST)
+        
+        time_elapsed = current_time - start_time
         
         try:
             if ':' in quiz.time_duration:
@@ -376,13 +209,12 @@ def configure_routes(app):
             
         time_left = timedelta(minutes=total_minutes) - time_elapsed
         
-        # Check if time is up
+        # If time is up, redirect to submit_quiz
         if time_left.total_seconds() <= 0:
             return redirect(url_for('submit_quiz', quiz_id=quiz_id))
         
-        questions = quiz.questions  # Changed from quiz.question to quiz.questions
+        questions = quiz.questions
         if not questions:
-            flash('No questions available for this quiz.', 'error')
             return redirect(url_for('user_dashboard'))
         
         current_question = min(max(1, question_number), len(questions))
@@ -399,10 +231,88 @@ def configure_routes(app):
                             total_questions=len(questions),
                             time_left=time_left_str)
 
+    
+    def auto_submit_quiz(quiz_id):
+        """Handle automatic quiz submission when time runs out"""
+        answers = session.get('answers', {})
+        quiz = Quiz.query.options(
+            db.joinedload(Quiz.chapter).joinedload(Chapter.subject),
+            db.joinedload(Quiz.questions).joinedload(Question.options)
+        ).get_or_404(quiz_id)
+        
+        total_marks = 0
+        scored_marks = 0
+        correct_answers = 0
+        total_questions = len(quiz.questions)
+        
+        for question in quiz.questions:
+            total_marks += question.marks
+            user_answer_id = answers.get(str(question.id))
+            
+            if user_answer_id:
+                selected_option = Option.query.get(int(user_answer_id))
+                if selected_option and selected_option.is_correct:
+                    scored_marks += question.marks
+                    correct_answers += 1
+        
+        percentage = (scored_marks / total_marks * 100) if total_marks > 0 else 0
+        
+        try:
+            user_id = session.get('user_id')
+            if not user_id:
+                raise ValueError("No user_id in session")
+                
+            new_score = Score(
+                user_id=user_id,
+                quiz_id=quiz_id,
+                score=int(percentage),
+                time_stamp=datetime.now(IST)
+            )
+            db.session.add(new_score)
+            db.session.commit()
+            
+            user = User.query.get(user_id)
+            if not user:
+                raise ValueError("User not found")
+            
+            all_scores = Score.query\
+                .filter_by(user_id=user_id)\
+                .join(Quiz)\
+                .join(Chapter)\
+                .join(Subject)\
+                .options(
+                    db.joinedload(Score.quiz)
+                    .joinedload(Quiz.chapter)
+                    .joinedload(Chapter.subject)
+                )\
+                .order_by(Score.time_stamp.desc())\
+                .all()
+            
+            # Clear session data
+            session.pop('quiz_start_time', None)
+            session.pop('answers', None)
+            
+            
+            return render_template('scores.html',
+                                quiz=quiz,
+                                current_score=new_score,
+                                all_scores=all_scores,
+                                total_questions=total_questions,
+                                correct_answers=correct_answers,
+                                percentage=percentage,
+                                user=user,
+                                today=datetime.now(IST).date(),
+                                auto_submitted=True)
+                                
+        except Exception as e:
+            print(f"Error in auto-submitting quiz: {e}")
+            db.session.rollback()
+            return redirect(url_for('user_dashboard'))
+
+    
     @app.route('/quiz/details/<int:quiz_id>')
     @login_required
     def view_quiz_details(quiz_id):
-        # Get the quiz with all related data
         quiz_data = db.session.query(
             Quiz,
             Chapter,
@@ -421,10 +331,8 @@ def configure_routes(app):
         ).first()
         
         if not quiz_data:
-            flash('Quiz not found', 'error')
             return redirect(url_for('user_dashboard'))
         
-        # Get user's score if exists
         user_score = Score.query.filter_by(
             user_id=session.get('user_id'),
             quiz_id=quiz_id
@@ -436,7 +344,8 @@ def configure_routes(app):
                             quiz_data=quiz_data,
                             user_score=user_score,
                             today=today)
-    @app.route('/admin/unified-search')  # Changed the route name to avoid conflicts
+    
+    @app.route('/admin/unified-search')  
     @login_required
     def admin_unified_search():
         query = request.args.get('q', '')
@@ -471,7 +380,7 @@ def configure_routes(app):
                 )
             ).all()
 
-            # Add debug prints
+            #for debugging
             print(f"Search query: {query}")
             print(f"Found subjects: {len(subjects)}")
             print(f"Found chapters: {len(chapters)}")
@@ -488,89 +397,6 @@ def configure_routes(app):
             )
         return redirect(url_for('admin_dashboard'))
 
-    # @app.route('/admin/search/quizzes')
-    # @login_required
-    # def admin_search_quizzes():
-    #     query = request.args.get('quiz_q', '')
-    #     if query:
-    #         # First, find matching chapters
-    #         matching_chapters = Chapter.query.filter(
-    #             Chapter.name.ilike(f'%{query}%')
-    #         ).all()
-            
-    #         if matching_chapters:
-    #             # If we found matching chapters, get their quizzes
-    #             chapter_ids = [chapter.id for chapter in matching_chapters]
-    #             search_results = Quiz.query.filter(
-    #                 Quiz.chapter_id.in_(chapter_ids)
-    #             ).all()
-    #         else:
-    #             search_results = []
-                
-    #         print(f"\nMatching chapters: {len(matching_chapters)}")
-    #         print(f"Found quizzes: {len(search_results)}")
-            
-    #         return render_template('quiz_search_results.html',
-    #                             results=search_results, 
-    #                             query=query)
-    #     return redirect(url_for('admin_dashboard'))
-
-
-    # @app.route('/admin/search/chapters')
-    # @login_required
-    # def admin_search_chapters():
-    #     query = request.args.get('chapter_q', '')
-    #     if query:
-    #         search_results = Chapter.query.join(Subject)\
-    #             .filter(
-    #                 db.or_(
-    #                     Chapter.name.ilike(f'%{query}%'),
-    #                     Chapter.description.ilike(f'%{query}%'),
-    #                     Subject.name.ilike(f'%{query}%')
-    #                 )
-    #             ).all()
-    #         return render_template('chapter_search_results.html',
-    #                             results=search_results, 
-    #                             query=query)
-    #     return redirect(url_for('admin_dashboard'))
-
-    # @app.route('/admin/search/subjects')
-    # @login_required
-    # def admin_search_subjects():
-    #     query = request.args.get('subject_q', '')
-    #     if query:
-    #         search_results = Subject.query\
-    #             .filter(
-    #                 db.or_(
-    #                     Subject.name.ilike(f'%{query}%'),
-    #                     Subject.description.ilike(f'%{query}%')
-    #                 )
-    #             ).all()
-    #         return render_template('subject_search_results.html',
-    #                             results=search_results, 
-    #                             query=query)
-    #     return redirect(url_for('admin_dashboard'))
-
-    # @app.route('/admin/search/questions')
-    # @login_required
-    # def admin_search_questions():
-    #     query = request.args.get('question_q', '')
-    #     if query:
-    #         search_results = Question.query.join(Quiz).join(Chapter).join(Subject)\
-    #             .filter(
-    #                 db.or_(
-    #                     Question.title.ilike(f'%{query}%'),
-    #                     Question.question.ilike(f'%{query}%'),
-    #                     Chapter.name.ilike(f'%{query}%'),
-    #                     Subject.name.ilike(f'%{query}%')
-    #                 )
-    #             ).all()
-    #         return render_template('question_search_results.html',
-    #                             results=search_results, 
-    #                             query=query)
-    #     return redirect(url_for('admin_dashboard'))
-
-    
     
     @app.route('/admin/search/users')
     @login_required
@@ -584,11 +410,9 @@ def configure_routes(app):
                 )
             ).all()
             
-            # Format dates if needed
             for user in search_results:
                 if user.dob:
                     try:
-                        # Assuming dob is a datetime object
                         user.dob = user.dob.strftime('%Y-%m-%d')
                     except:
                         pass
@@ -606,17 +430,14 @@ def configure_routes(app):
         if user.role != 'admin':
             db.session.delete(user)
             db.session.commit()
-            # flash('User has been deleted successfully.', 'success')
         else:
             flash('Cannot delete admin users.', 'error')
         return redirect(url_for('admin_dashboard'))
 
 
-
     @app.route('/user/dashboard', methods=['GET', 'POST'])
     @login_required
     def user_dashboard():
-        # Get all quizzes with their question counts and related data
         quizzes = db.session.query(
             Quiz,
             db.func.count(Question.id).label('question_count')
@@ -631,101 +452,34 @@ def configure_routes(app):
         today = date.today()
         return render_template('user_dashboard.html', quizzes=quizzes, today=today)
 
-    # @app.route('/user/dashboard', methods=['GET', 'POST'])
-    # def user_dashboard():
-    #     # Get all quizzes with their question counts
-    #     quizzes = db.session.query(
-    #         Quiz,
-    #         db.func.count(Question.id).label('question_count')
-    #     ).outerjoin(
-    #         Question
-    #     ).group_by(Quiz.id).all()
-        
-    #     today = date.today()  # Use date.today() instead of datetime.now().date()
-    #     return render_template('user_dashboard.html', quizzes=quizzes, today=today)
 
-    # @app.route('/quiz/start/<int:quiz_id>')
-    # @app.route('/quiz/start/<int:quiz_id>/<int:question_number>')
-    # @login_required
-    # def start_quiz(quiz_id, question_number=1):
-    #     quiz = Quiz.query.options(
-    #         db.joinedload(Quiz.chapter).joinedload(Chapter.subject),
-    #         db.joinedload(Quiz.questions).joinedload(Question.options)
-    #     ).get_or_404(quiz_id)
-        
-    #     # Initialize quiz session
-    #     if 'quiz_start_time' not in session:
-    #         session['quiz_start_time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    #         session['answers'] = {}
-        
-    #     # Calculate time left
-    #     start_time = datetime.strptime(session['quiz_start_time'], '%Y-%m-%d %H:%M:%S')
-    #     time_elapsed = datetime.now() - start_time
-        
-    #     try:
-    #         if ':' in quiz.time_duration:
-    #             hours, minutes = map(int, quiz.time_duration.split(':'))
-    #             total_minutes = hours * 60 + minutes
-    #         else:
-    #             total_minutes = int(quiz.time_duration)
-    #     except (ValueError, TypeError):
-    #         total_minutes = 60
-            
-    #     time_left = timedelta(minutes=total_minutes) - time_elapsed
-        
-    #     # Check if time is up
-    #     if time_left.total_seconds() <= 0:
-    #         return redirect(url_for('submit_quiz', quiz_id=quiz_id))  # Changed from 'scores' to 'submit_quiz'
-        
-    #     questions = quiz.questions
-    #     if not questions:
-    #         flash('No questions available for this quiz.', 'error')
-    #         return redirect(url_for('user_dashboard'))
-        
-    #     current_question = min(max(1, question_number), len(questions))
-    #     question = questions[current_question - 1]
-        
-    #     minutes_left = int(time_left.total_seconds() // 60)
-    #     seconds_left = int(time_left.total_seconds() % 60)
-    #     time_left_str = f"{minutes_left}:{seconds_left:02d}"
-        
-    #     return render_template('quiz.html',
-    #                         quiz=quiz,
-    #                         question=question,
-    #                         current_question=current_question,
-    #                         total_questions=len(questions),
-    #                         time_left=time_left_str)
-
-    
-    # Add this relationship to Quiz model
     @app.route('/quiz/handle/<int:quiz_id>/<int:question_number>', methods=['POST'])
     @login_required
     def handle_quiz(quiz_id, question_number):
         action = request.form.get('action')
         answer = request.form.get('answer')
-            
+        timer_value = request.form.get('timer_value')
         print(f"Handle quiz - Action: {action}, Answer: {answer}")  # Debug print
             
-            # Get the current question
         quiz = Quiz.query.get_or_404(quiz_id)
         question = quiz.questions[question_number - 1]
             
-            # Save the answer in session using question.id as key
         if answer:
             if 'answers' not in session:
                 session['answers'] = {}
-            session['answers'][str(question.id)] = answer  # Use question.id instead of question_number
+            session['answers'][str(question.id)] = answer  
             session.modified = True
             print(f"Saved answer {answer} for question {question.id}")  # Debug print
             
-        if action == 'submit':
-            print("Submitting quiz...")
+        if timer_value == '0:00' or action == 'submit':
+            print("Time's up or submit action - Submitting quiz...")
             return redirect(url_for('submit_quiz', quiz_id=quiz_id))
-            
+        
         if action == 'next':
             return redirect(url_for('start_quiz', quiz_id=quiz_id, question_number=question_number + 1))
         elif action == 'prev':
             return redirect(url_for('start_quiz', quiz_id=quiz_id, question_number=question_number - 1))
+    
     from datetime import datetime, date
 
     @app.route('/quiz/submit/<int:quiz_id>', methods=['GET', 'POST'])
@@ -733,16 +487,13 @@ def configure_routes(app):
     def submit_quiz(quiz_id):
         print(f"Current user_id in session: {session.get('user_id')}")
         
-        # Get the answers from session
         answers = session.get('answers', {})
         
-        # Get the quiz with all related data
         quiz = Quiz.query.options(
             db.joinedload(Quiz.chapter).joinedload(Chapter.subject),
             db.joinedload(Quiz.questions).joinedload(Question.options)
         ).get_or_404(quiz_id)
         
-        # Calculate score
         total_marks = 0
         scored_marks = 0
         correct_answers = 0
@@ -784,7 +535,6 @@ def configure_routes(app):
             if not user:
                 raise ValueError("User not found")
             
-            # Get all scores for this user with related data
             all_scores = Score.query\
                 .filter_by(user_id=user_id)\
                 .join(Quiz)\
@@ -798,7 +548,6 @@ def configure_routes(app):
                 .order_by(Score.time_stamp.desc())\
                 .all()
             
-            # Clear quiz session data
             session.pop('quiz_start_time', None)
             session.pop('answers', None)
             
@@ -810,71 +559,38 @@ def configure_routes(app):
                                 correct_answers=correct_answers,
                                 percentage=percentage,
                                 user=user,
-                                today=date.today()  # Add this line
+                                today=datetime.now(IST).date()
                                 )
                                 
         except Exception as e:
             print(f"Error submitting quiz: {e}")
             db.session.rollback()
-            flash('Error submitting quiz. Please try again.', 'error')
             return redirect(url_for('user_dashboard'))
-
-        
-        # @app.route('/quiz/view/<int:quiz_id>')
-        # @login_required
-        # def view_quiz_details(quiz_id):
-        #     # Get the quiz with all related information
-        #     quiz_data = db.session.query(
-        #         Quiz,
-        #         Chapter,
-        #         Subject,
-        #         db.func.count(Question.id).label('question_count')
-        #     ).select_from(Quiz).join(
-        #         Chapter, Quiz.chapter_id == Chapter.id
-        #     ).join(
-        #         Subject, Chapter.subject_id == Subject.id
-        #     ).outerjoin(
-        #         Question, Question.quiz_id == Quiz.id
-        #     ).filter(
-        #         Quiz.id == quiz_id
-        #     ).group_by(
-        #         Quiz.id, Chapter.id, Subject.id
-        #     ).first()
-            
-        #     if not quiz_data:
-        #         flash('Quiz not found', 'error')
-        #         return redirect(url_for('user_dashboard'))
-            
-        #     today = date.today()
-        #     return render_template('view_quiz.html', quiz_data=quiz_data, today=today)
-    
     
     @app.route('/search')
     @login_required
     def search_quizzes():
         query = request.args.get('q', '')
         if query:
-            # Search for exact chapters first
             chapters = Chapter.query\
                 .join(Subject)\
                 .filter(
                     db.or_(
-                        Chapter.name.ilike(f'%{query}%'),  # Match chapter name
-                        Chapter.description.ilike(f'%{query}%')  # Match chapter description
+                        Chapter.name.ilike(f'%{query}%'),  # Match the chapter name
+                        Chapter.description.ilike(f'%{query}%')  
                     )
                 ).all()
 
-            # Search for quizzes that belong to the exact matching chapter
+            #search for quizzes that belong to the exact matching chapter requested by the user
             quizzes = Quiz.query\
                 .join(Chapter)\
                 .filter(
                     db.or_(
                         Quiz.remarks.ilike(f'%{query}%'),  # Match quiz remarks
-                        Quiz.chapter_id.in_([chapter.id for chapter in chapters])  # Match only quizzes from found chapters
+                        Quiz.chapter_id.in_([chapter.id for chapter in chapters])  
                     )
                 ).all()
 
-            # Debug prints
             print(f"\nSearch query: {query}")
             print(f"Found chapters: {[chapter.name for chapter in chapters]}")
             print(f"Found quizzes: {[quiz.chapter.name for quiz in quizzes]}")
@@ -893,14 +609,13 @@ def configure_routes(app):
     @app.route('/scores')
     @login_required
     def user_scores():
-        # Get all scores for the current user, ordered by timestamp (newest first)
         scores = Score.query.filter_by(user_id=session['user_id'])\
                         .order_by(Score.time_stamp.desc())\
                         .all()
         
         return render_template('all_scores.html', 
                             scores=scores,
-                            today=date.today())  # Using date.today() instead of datetime.now()
+                            today=date.today())  
 
 
 
@@ -908,7 +623,7 @@ def configure_routes(app):
     @app.route('/user/summary')
     @login_required
     def user_summary():
-        # Get user's subject-wise performance
+        #get users subjectwise performance
         subject_performance = db.session.query(
             Subject.name,
             db.func.avg(Score.score).label('average_score'),
@@ -921,7 +636,6 @@ def configure_routes(app):
         .group_by(Subject.name)\
         .all()
 
-        # Get user's recent quiz attempts (last 5)
         recent_attempts = db.session.query(
             Quiz.id,
             Chapter.name.label('chapter_name'),
@@ -937,7 +651,6 @@ def configure_routes(app):
         .limit(5)\
         .all()
 
-        # Get user's performance trend (last 7 days)
         from datetime import datetime, timedelta
         seven_days_ago = datetime.now() - timedelta(days=7)
         
@@ -952,7 +665,6 @@ def configure_routes(app):
         .order_by(db.func.date(Score.time_stamp))\
         .all()
 
-        # Calculate overall statistics
         overall_stats = db.session.query(
             db.func.count(Score.id).label('total_quizzes'),
             db.func.avg(Score.score).label('average_score'),
@@ -961,7 +673,6 @@ def configure_routes(app):
         .filter(Score.user_id == session['user_id'])\
         .first()
 
-        # Handle the case when there are no scores yet
         if not overall_stats.total_quizzes:
             overall_stats = {
                 'total_quizzes': 0,
@@ -988,7 +699,6 @@ def configure_routes(app):
             if request.method == 'POST':
                 chapter.name = request.form['name']
                 db.session.commit()
-                # flash('Chapter updated successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             return render_template('edit_chapter.html', chapter=chapter)
 
@@ -997,7 +707,6 @@ def configure_routes(app):
             chapter = Chapter.query.get_or_404(chapter_id)
             db.session.delete(chapter)
             db.session.commit()
-            # flash('Chapter deleted successfully!', 'success')
             return redirect(url_for('admin_dashboard'))
     @app.route('/subject/add', methods=['GET', 'POST'])
     def add_subject():
@@ -1007,11 +716,10 @@ def configure_routes(app):
                 new_subject = Subject(name=subject_name, description=subject_description)
                 db.session.add(new_subject)
                 db.session.commit()
-                # flash('Subject added successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             return render_template('add_subject.html')
     @app.route('/chapter/add/<int:subject_id>', methods=['GET', 'POST'])
-    def add_chapter(subject_id):  # Make sure subject_id is included as a parameter
+    def add_chapter(subject_id): 
             subject = Subject.query.get_or_404(subject_id)  # Get the subject or return 404 if not found
             
             if request.method == 'POST':
@@ -1020,23 +728,20 @@ def configure_routes(app):
                 new_chapter = Chapter(
                     name=chapter_name,
                     description=chapter_description,
-                    subject_id=subject_id  # Associate the chapter with the subject
+                    subject_id=subject_id  
                 )
                 db.session.add(new_chapter)
                 db.session.commit()
-                # flash('Chapter added successfully!', 'success')
                 return redirect(url_for('admin_dashboard'))
             
             return render_template('add_chapter.html', subject=subject)
 
     @app.route('/admin/quiz')
     def admin_quiz():
-            # Get all quizzes instead of chapters
             quizzes = Quiz.query.all()
             chapters = Chapter.query.all()
             return render_template('admin_quiz.html', quizzes=quizzes, chapters=chapters)
 
-    # Route in your Flask application
     @app.route('/admin/summary')
     @login_required
     def admin_summary():
@@ -1104,7 +809,6 @@ def configure_routes(app):
                 quiz_date = request.form['date']
                 quiz_duration = request.form['duration']
                 
-                # Create new quiz
                 new_quiz = Quiz(
                     chapter_id=chapter_id,
                     date_of_quiz=datetime.strptime(quiz_date, '%Y-%m-%d').date(),
@@ -1113,7 +817,6 @@ def configure_routes(app):
                 db.session.add(new_quiz)
                 db.session.commit()
                 
-                # flash('Quiz created successfully!', 'success')
                 return redirect(url_for('admin_quiz'))
             
             chapters = Chapter.query.all()
@@ -1137,9 +840,8 @@ def configure_routes(app):
                     marks=request.form['marks']
                 )
                 db.session.add(new_question)
-                db.session.flush()  # To get the question ID
+                db.session.flush()  
 
-                # Add options
                 correct_option = request.form['correct_option']
                 for i in range(4):
                     option = Option(
@@ -1150,11 +852,10 @@ def configure_routes(app):
                     db.session.add(option)
                 
                 db.session.commit()
-                # flash('Question added successfully!', 'success')
                 return redirect(url_for('view_quiz_questions', quiz_id=quiz_id))
             
             return render_template('add_question.html', quiz=quiz)
-    # Add these routes to your apis.py
+
 
     @app.route('/quiz/question/<int:question_id>/edit', methods=['GET', 'POST'])
     def edit_questions(question_id):
@@ -1165,10 +866,8 @@ def configure_routes(app):
             question.question = request.form['question']
             question.marks = int(request.form['marks'])
             
-            # Delete existing options
             Option.query.filter_by(question_id=question.id).delete()
             
-            # Add new options
             correct_option = request.form['correct_option']
             for i in range(4):
                 option = Option(
@@ -1179,7 +878,6 @@ def configure_routes(app):
                 db.session.add(option)
                 
             db.session.commit()
-            # flash('Question updated successfully!', 'success')
             return redirect(url_for('view_quiz_questions', quiz_id=question.quiz_id))
             
         return render_template('edit_questions.html', question=question)
@@ -1191,8 +889,6 @@ def configure_routes(app):
         
         db.session.delete(question)
         db.session.commit()
-        
-        # flash('Question deleted successfully!', 'success')
         return redirect(url_for('view_quiz_questions', quiz_id=quiz_id))
     
     @app.route('/edit_subject/<int:subject_id>', methods=['GET', 'POST'])
@@ -1214,16 +910,12 @@ def configure_routes(app):
         subject = Subject.query.get_or_404(subject_id)
         
         try:
-            # Get all chapters for this subject
             chapters = Chapter.query.filter_by(subject_id=subject_id).all()
             
-            # For each chapter, delete associated quizzes and their data
             for chapter in chapters:
-                # Get all quizzes for this chapter
                 quizzes = Quiz.query.filter_by(chapter_id=chapter.id).all()
                 
                 for quiz in quizzes:
-                    # Delete quiz questions and options
                     questions = Question.query.filter_by(quiz_id=quiz.id).all()
                     for question in questions:
                         Option.query.filter_by(question_id=question.id).delete()
@@ -1238,7 +930,7 @@ def configure_routes(app):
             # Delete all chapters for this subject
             Chapter.query.filter_by(subject_id=subject_id).delete()
             
-            # Finally delete the subject
+            #delete the subject
             db.session.delete(subject)
             db.session.commit()
             
@@ -1250,7 +942,7 @@ def configure_routes(app):
             """
         except Exception as e:
             db.session.rollback()
-            print(f"Error deleting subject: {str(e)}")  # For debugging
+            print(f"Error deleting subject: {str(e)}") 
             return """
                 <script>
                     alert('Error deleting subject. Please try again.');
@@ -1262,7 +954,6 @@ def configure_routes(app):
     @app.route('/edit_quiz/<int:quiz_id>', methods=['GET', 'POST'])
     def edit_quiz(quiz_id):
         quiz = Quiz.query.get_or_404(quiz_id)
-        # Get all chapters with their subjects
         chapters = db.session.query(Chapter).join(Subject).all()
         
         if request.method == 'POST':
@@ -1294,9 +985,7 @@ def configure_routes(app):
     @app.route('/delete_quiz/<int:quiz_id>')
     def delete_quiz(quiz_id):
         quiz = Quiz.query.get_or_404(quiz_id)
-        # Delete associated questions first
         Question.query.filter_by(quiz_id=quiz_id).delete()
-        # Delete quiz scores
         Score.query.filter_by(quiz_id=quiz_id).delete()
         db.session.delete(quiz)
         db.session.commit()

@@ -11,7 +11,6 @@
     <div class="container mt-4">
         <h2 class="mb-4">My Performance Dashboard</h2>
 
-        <!-- Overall Statistics Cards -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card bg-primary text-white">
@@ -40,7 +39,6 @@
         </div>
 
         <div class="row">
-            <!-- Subject Performance Chart -->
             <div class="col-md-6 mb-4">
                 <div class="card">
                     <div class="card-header">
@@ -52,7 +50,6 @@
                 </div>
             </div>
 
-            <!-- Performance Trend -->
             <div class="col-md-6 mb-4">
                 <div class="card">
                     <div class="card-header">
@@ -65,7 +62,6 @@
             </div>
         </div>
 
-        <!-- Recent Attempts Table -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -103,7 +99,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Subject Performance Chart
         new Chart(document.getElementById('subjectChart'), {
             type: 'bar',
             data: {

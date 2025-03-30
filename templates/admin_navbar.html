@@ -70,8 +70,6 @@
             <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
                 <i class="fas fa-graduation-cap"></i> Quiz Master Admin
             </a>
-
-            <!-- Toggle button for mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbarContent" 
                     aria-controls="adminNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -80,7 +78,7 @@
             <!-- Navbar content -->
             <div class="collapse navbar-collapse" id="adminNavbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- Home -->
+
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" 
                            href="{{ url_for('admin_dashboard') }}">
@@ -107,8 +105,7 @@
 
                 <!-- Search Forms -->
                 <div class="d-flex align-items-center">
-                    <!-- Quiz Search -->
-                    <!-- In your admin dashboard template -->
+
                     <form action="{{ url_for('admin_unified_search') }}" method="get" class="d-flex me-2 search-form">
                         <div class="input-group">
                             <input type="text" name="q" class="form-control" placeholder="Search for subjects, chapters, quizzes, or questions...">

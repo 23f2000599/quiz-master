@@ -41,7 +41,6 @@
 <body>
     {% include 'user_navbar.html' %}
 
-    <!-- Dashboard Header -->
     <div class="dashboard-header">
         <div class="container">
             <h1 class="h3">Welcome to Your Dashboard</h1>
@@ -49,7 +48,6 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="container mb-5">
         <div class="table-container">
             
@@ -66,7 +64,6 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <!-- Previous code remains the same -->
                     <tbody>
                         {% for quiz, question_count in quizzes %}
                         <tr>
@@ -117,14 +114,12 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-light py-4 mt-auto">
         <div class="container text-center">
             <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

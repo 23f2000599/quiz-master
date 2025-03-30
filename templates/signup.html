@@ -58,7 +58,6 @@
 <body>
     <div class="content-wrapper">
         <div class="login-container">
-            <!-- Back to Home Button -->
             <div class="text-center mb-4">
                 <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Back to Home
@@ -66,28 +65,24 @@
             </div>
 
             <div class="login-card">
-                <!-- Login Header -->
                 <div class="login-header">
                     <i class="fas fa-user-circle login-icon"></i>
                     <h2>Welcome Back!</h2>
                     <p class="text-muted">Please Sign up </p>
                 </div>
 
-                <!-- Login Form -->
                 <form method="POST" action="{{ url_for('signup') }}">
-                    <!-- Full Name -->
+               
                     <div class="mb-3">
                         <label for="fullname" class="form-label">Full Name</label>
                         <input type="text" class="form-control" id="fullname" name="fullname" required>
                     </div>
 
-                    <!-- Email -->
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" required>
                     </div>
 
-                    <!-- Password -->
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
@@ -103,13 +98,11 @@
                         </div>
                     </div>
 
-                    <!-- Date of Birth -->
                     <div class="mb-3">
                         <label for="dob" class="form-label">Date of Birth</label>
                         <input type="date" class="form-control" id="dob" name="dob" required>
                     </div>
 
-                    <!-- Qualification -->
                     <div class="mb-3">
                         <label for="qualification" class="form-label">Qualification</label>
                         <select class="form-select" id="qualification" name="qualification" required>
@@ -122,12 +115,10 @@
                         </select>
                     </div>
 
-                    <!-- Submit Button -->
                     <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-primary">Sign Up</button>
                     </div>
 
-                    <!-- Login Link -->
                     <div class="text-center mt-3">
                         <p class="mb-0">Already have an account? 
                             <a href="{{ url_for('login') }}" class="text-decoration-none">Login here</a>
@@ -135,7 +126,6 @@
                     </div>
                 </form>
 
-                <!-- Sign Up Link -->
                 <div class="signup-link">
                     <p class="mb-0">Existing User?
                         <a href="{{ url_for('login') }}" class="text-primary text-decoration-none">Sign Up</a>

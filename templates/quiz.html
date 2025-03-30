@@ -22,7 +22,6 @@
 </head>
 <body>
     {% include 'user_navbar.html' %}
-    <!-- Quiz Header -->
     <div class="quiz-header">
         <div class="container">
             <div class="row align-items-center">
@@ -39,11 +38,8 @@
         </div>
     </div>
 
-    <!-- ... rest of your existing HTML ... -->
-        <!-- Quiz Content -->
         <div class="container mb-5">
             <div class="row">
-                <!-- Quiz Information Sidebar -->
                 <div class="col-md-3">
                     <div class="card mb-4">
                         <div class="card-header">
@@ -66,7 +62,6 @@
                     </div>
                 </div>
     
-                <!-- Question Section -->
                 <div class="col-md-9">
                     <form action="{{ url_for('handle_quiz', quiz_id=quiz.id, question_number=current_question) }}" method="POST">
                         <div class="card question-card">
@@ -118,53 +113,67 @@
                 </div>
             </div>
         </div>
-    <script>
-        // Get the quiz end time by adding duration to start time
-        const startTime = new Date("{{ session['quiz_start_time'] }}").getTime();
-        let duration = 0;
-        
-        {% if ':' in quiz.time_duration %}
-            const [hours, minutes] = "{{ quiz.time_duration }}".split(':').map(Number);
-            duration = (hours * 60 + minutes) * 60 * 1000; // Convert to milliseconds
-        {% else %}
-            duration = {{ quiz.time_duration }} * 60 * 1000; // Convert minutes to milliseconds
-        {% endif %}
-        
-        const endTime = startTime + duration;
-        const timerElement = document.getElementById('timer');
-        
-        function updateTimer() {
-            const now = new Date().getTime();
-            const timeLeft = endTime - now;
+        <script>
+            const startTime = new Date("{{ session['quiz_start_time'] }}").getTime();
+            let duration = 0;
             
-            if (timeLeft <= 0) {
-                // Time's up - submit the quiz
-                document.querySelector('form').submit();
-                return;
+            {% if ':' in quiz.time_duration %}
+                const [hours, minutes] = "{{ quiz.time_duration }}".split(':').map(Number);
+                duration = (hours * 60 + minutes) * 60 * 1000; 
+            {% else %}
+                duration = {{ quiz.time_duration }} * 60 * 1000; 
+            {% endif %}
+            
+            const endTime = startTime + duration;
+            const timerElement = document.getElementById('timer');
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const timeLeft = endTime - now;
+                
+                if (timeLeft <= 0) {
+                    timerElement.textContent = 'Time Remaining: 0:00';
+                    timerElement.classList.add('warning');
+                    // Redirect to submit_quiz route
+                    window.location.href = "/quiz/submit/{{ quiz.id }}";
+                    return;
+                }
+                
+                const minutes = Math.floor(timeLeft / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                timerElement.textContent = `Time Remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft < 300000) { // 5 minutes warning
+                    timerElement.classList.add('warning');
+                }
             }
+        
+            // Initial timer update
+            updateTimer();
             
-            // Calculate minutes and seconds
-            const minutes = Math.floor(timeLeft / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
-            // Update the timer display
-            timerElement.textContent = `Time Remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            // Add warning class when less than 5 minutes remaining
-            if (timeLeft < 300000) { // 5 minutes in milliseconds
-                timerElement.classList.add('warning');
+            // Update timer every second
+            const timerInterval = setInterval(updateTimer, 1000);
+        
+            // Prevent form resubmission on page refresh
+            if (window.history.replaceState) {
+                window.history.replaceState(null, null, window.location.href);
             }
-        }
-
-        // Update timer immediately and then every second
-        updateTimer();
-        setInterval(updateTimer, 1000);
-
-        // Prevent form resubmission on page refresh
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
-        }
-    </script>
+        
+            // Add form submit event listener
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // Clear the timer interval when form is submitted
+                clearInterval(timerInterval);
+                
+                // If timer has reached zero, prevent normal submission and redirect
+                if (endTime - new Date().getTime() <= 0) {
+                    e.preventDefault();
+                    window.location.href = "/quiz/submit/{{ quiz.id }}";
+                }
+            });
+        </script>
+        
+    
     <footer class="bg-light py-4 mt-auto">
         <div class="container text-center">
             <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
