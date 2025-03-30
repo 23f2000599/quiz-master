@@ -81,14 +81,7 @@ pip install -r requirements.txt
 ```
 
 
-### **4. Set Up Database**  
-```bash
-flask db init
-flask db migrate
-flask db upgrade
-```
-
-### **5. Run the Application**  
+### **4. Run the Application**  
 ```bash
 flask run
 ```
