@@ -10,6 +10,7 @@ from functools import wraps
 from flask import session, redirect, url_for, flash
 from flask_login import login_required, current_user
 from flask_login import LoginManager
+from datetime import datetime, date
 login_manager = LoginManager()
 
 @login_manager.user_loader
@@ -725,6 +726,7 @@ def configure_routes(app):
             return redirect(url_for('start_quiz', quiz_id=quiz_id, question_number=question_number + 1))
         elif action == 'prev':
             return redirect(url_for('start_quiz', quiz_id=quiz_id, question_number=question_number - 1))
+    from datetime import datetime, date
 
     @app.route('/quiz/submit/<int:quiz_id>', methods=['GET', 'POST'])
     @login_required
@@ -807,13 +809,16 @@ def configure_routes(app):
                                 total_questions=total_questions,
                                 correct_answers=correct_answers,
                                 percentage=percentage,
-                                user=user)
+                                user=user,
+                                today=date.today()  # Add this line
+                                )
                                 
         except Exception as e:
             print(f"Error submitting quiz: {e}")
             db.session.rollback()
             flash('Error submitting quiz. Please try again.', 'error')
             return redirect(url_for('user_dashboard'))
+
         
         # @app.route('/quiz/view/<int:quiz_id>')
         # @login_required
@@ -842,6 +847,8 @@ def configure_routes(app):
             
         #     today = date.today()
         #     return render_template('view_quiz.html', quiz_data=quiz_data, today=today)
+    
+    
     @app.route('/search')
     @login_required
     def search_quizzes():
@@ -881,6 +888,8 @@ def configure_routes(app):
 
   
   
+
+
     @app.route('/scores')
     @login_required
     def user_scores():
@@ -889,7 +898,11 @@ def configure_routes(app):
                         .order_by(Score.time_stamp.desc())\
                         .all()
         
-        return render_template('all_scores.html', scores=scores)
+        return render_template('all_scores.html', 
+                            scores=scores,
+                            today=date.today())  # Using date.today() instead of datetime.now()
+
+
 
 
     @app.route('/user/summary')

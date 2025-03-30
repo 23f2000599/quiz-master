@@ -115,8 +115,10 @@
                 <!-- Navigation Buttons -->
                 <div class="text-center mt-4">
                     <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
-                    {% if percentage < 50 %}
-                    <a href="{{ url_for('start_quiz', quiz_id=quiz.id) }}" class="btn btn-outline-primary">Retry Quiz</a>
+                    {% if percentage < 50 and quiz.date_of_quiz >= today %}
+                        <a href="{{ url_for('start_quiz', quiz_id=quiz.id) }}" class="btn btn-outline-primary">Retry Quiz</a>
+                    {% elif percentage < 50 and quiz.date_of_quiz < today %}
+                        <button class="btn btn-secondary" disabled>Quiz Expired</button>
                     {% endif %}
                 </div>
             </div>
