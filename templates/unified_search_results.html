@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .search-results {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .result-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1rem;
+        }
+        .search-header {
+            margin-bottom: 2rem;
+        }
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        .section-title {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    {% include 'admin_navbar.html' %}
+
+    <div class="container search-results">
+        <div class="search-header">
+            <h2>
+                <i class="fas fa-search"></i> Search Results
+                <small class="text-muted">for "{{ query }}"</small>
+            </h2>
+        </div>
+
+        {% if not subjects and not chapters and not quizzes and not questions %}
+            <div class="no-results">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <h3>No results found</h3>
+                <p>Try different search terms or check your spelling</p>
+            </div>
+        {% else %}
+            {% if subjects %}
+            <div class="result-section">
+                <h3 class="section-title"><i class="fas fa-book"></i> Subjects</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Total Chapters</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>{{ subject.name }}</td>
+                                <td>{{ subject.description }}</td>
+                                <td>{{ subject.chapters|length }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_subject', subject_id=subject.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if chapters %}
+            <div class="result-section">
+                <h3 class="section-title"><i class="fas fa-folder"></i> Chapters</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Subject</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for chapter in chapters %}
+                            <tr>
+                                <td>{{ chapter.name }}</td>
+                                <td>{{ chapter.subject.name }}</td>
+                                <td>{{ chapter.description }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_chapter', chapter_id=chapter.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if quizzes %}
+            <div class="result-section">
+                <h3 class="section-title"><i class="fas fa-question-circle"></i> Quizzes</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Chapter</th>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Questions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in quizzes %}
+                            <tr>
+                                <td>{{ quiz.chapter.name }}</td>
+                                <td>{{ quiz.chapter.subject.name }}</td>
+                                <td>{{ quiz.date_of_quiz.strftime('%Y-%m-%d') if quiz.date_of_quiz else 'N/A' }}</td>
+                                <td>{{ quiz.time_duration }}</td>
+                                <td>{{ quiz.questions|length }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_quiz', quiz_id=quiz.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if questions %}
+            <div class="result-section">
+                <h3 class="section-title"><i class="fas fa-tasks"></i> Questions</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Question</th>
+                                <th>Quiz</th>
+                                <th>Chapter</th>
+                                <th>Marks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in questions %}
+                            <tr>
+                                <td>{{ question.title }}</td>
+                                <td>{{ question.question }}</td>
+                                <td>{{ question.quiz.chapter.name }}</td>
+                                <td>{{ question.quiz.chapter.subject.name }}</td>
+                                <td>{{ question.marks }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_questions', question_id=question.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <footer class="bg-light py-4 mt-auto">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

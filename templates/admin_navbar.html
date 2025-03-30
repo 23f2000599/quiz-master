@@ -47,6 +47,20 @@
             color: #fff;
             padding: 0 10px;
         }
+        .search-container {
+        margin-top: 4rem;  /* Adjusts space from top */
+        margin-bottom: 0rem;
+        padding: 0 15px;
+    }
+    
+    .search-form {
+        max-width: 800px;  /* Limits width of search box */
+        margin: 0 auto;    /* Centers the search box */
+    }
+    
+    .search-input {
+        height: 50px;      /* Makes the search box taller */
+    }
     </style>
 </head>
 <body>
@@ -94,16 +108,16 @@
                 <!-- Search Forms -->
                 <div class="d-flex align-items-center">
                     <!-- Quiz Search -->
-                    <form class="d-flex me-2 search-form" action="{{ url_for('admin_search_quizzes') }}" method="GET">
+                    <!-- In your admin dashboard template -->
+                    <form action="{{ url_for('admin_unified_search') }}" method="get" class="d-flex me-2 search-form">
                         <div class="input-group">
-                            <input class="form-control" type="search" name="quiz_q" 
-                                   placeholder="Search quizzes..." aria-label="Search quizzes"
-                                   value="{{ request.args.get('quiz_q', '') }}">
-                            <button class="btn btn-light" type="submit">
-                                <i class="fas fa-search"></i>
+                            <input type="text" name="q" class="form-control" placeholder="Search for subjects, chapters, quizzes, or questions...">
+                            <button type="submit" class="btn btn-light border" style="color: black; background-color: white;">
+                                <i class="fas fa-search" style="color: black;"></i> Search
                             </button>
                         </div>
                     </form>
+
 
                     <span class="search-divider">|</span>
 

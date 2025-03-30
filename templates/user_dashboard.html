@@ -52,25 +52,13 @@
     <!-- Main Content -->
     <div class="container mb-5">
         <div class="table-container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h4 mb-0">Available Quizzes</h2>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
-                        Filter
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">All Quizzes</a></li>
-                        <li><a class="dropdown-item" href="#">Today's Quizzes</a></li>
-                        <li><a class="dropdown-item" href="#">Upcoming Quizzes</a></li>
-                    </ul>
-                </div>
-            </div>
+            
 
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Quiz ID</th>
+                            <th>Quiz Details</th>
                             <th>Questions</th>
                             <th>Date</th>
                             <th>Duration (mins)</th>
@@ -82,7 +70,7 @@
                     <tbody>
                         {% for quiz, question_count in quizzes %}
                         <tr>
-                            <td class="quiz-title">#{{ quiz.id }}</td>
+                            <td class="quiz-title">{{ quiz.chapter.name }}</td>
                             <td>{{ question_count }}</td>
                             <td>{{ quiz.date_of_quiz.strftime('%B %d, %Y') }}</td>
                             <td>{{ quiz.time_duration }}</td>

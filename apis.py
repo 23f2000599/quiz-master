@@ -435,23 +435,142 @@ def configure_routes(app):
                             quiz_data=quiz_data,
                             user_score=user_score,
                             today=today)
-
-    @app.route('/admin/search/quizzes')
+    @app.route('/admin/unified-search')  # Changed the route name to avoid conflicts
     @login_required
-    def admin_search_quizzes():
-        query = request.args.get('quiz_q', '')
+    def admin_unified_search():
+        query = request.args.get('q', '')
         if query:
-            search_results = Quiz.query.join(Chapter).join(Subject)\
-                .filter(
-                    db.or_(
-                        Chapter.name.ilike(f'%{query}%'),
-                        Subject.name.ilike(f'%{query}%')
-                    )
-                ).all()
-            return render_template('quiz_search_results.html',  # Changed from admin/quiz_search_results.html
-                                results=search_results, 
-                                query=query)
+            # Search in all entities
+            subjects = Subject.query.filter(
+                db.or_(
+                    Subject.name.ilike(f'%{query}%'),
+                    Subject.description.ilike(f'%{query}%')
+                )
+            ).all()
+
+            chapters = Chapter.query.filter(
+                db.or_(
+                    Chapter.name.ilike(f'%{query}%'),
+                    Chapter.description.ilike(f'%{query}%')
+                )
+            ).all()
+
+            quizzes = Quiz.query.join(Chapter).join(Subject).filter(
+                db.or_(
+                    Quiz.remarks.ilike(f'%{query}%'),
+                    Chapter.name.ilike(f'%{query}%'),
+                    Subject.name.ilike(f'%{query}%')
+                )
+            ).all()
+
+            questions = Question.query.filter(
+                db.or_(
+                    Question.title.ilike(f'%{query}%'),
+                    Question.question.ilike(f'%{query}%')
+                )
+            ).all()
+
+            # Add debug prints
+            print(f"Search query: {query}")
+            print(f"Found subjects: {len(subjects)}")
+            print(f"Found chapters: {len(chapters)}")
+            print(f"Found quizzes: {len(quizzes)}")
+            print(f"Found questions: {len(questions)}")
+
+            return render_template(
+                'unified_search_results.html',
+                subjects=subjects,
+                chapters=chapters,
+                quizzes=quizzes,
+                questions=questions,
+                query=query
+            )
         return redirect(url_for('admin_dashboard'))
+
+    # @app.route('/admin/search/quizzes')
+    # @login_required
+    # def admin_search_quizzes():
+    #     query = request.args.get('quiz_q', '')
+    #     if query:
+    #         # First, find matching chapters
+    #         matching_chapters = Chapter.query.filter(
+    #             Chapter.name.ilike(f'%{query}%')
+    #         ).all()
+            
+    #         if matching_chapters:
+    #             # If we found matching chapters, get their quizzes
+    #             chapter_ids = [chapter.id for chapter in matching_chapters]
+    #             search_results = Quiz.query.filter(
+    #                 Quiz.chapter_id.in_(chapter_ids)
+    #             ).all()
+    #         else:
+    #             search_results = []
+                
+    #         print(f"\nMatching chapters: {len(matching_chapters)}")
+    #         print(f"Found quizzes: {len(search_results)}")
+            
+    #         return render_template('quiz_search_results.html',
+    #                             results=search_results, 
+    #                             query=query)
+    #     return redirect(url_for('admin_dashboard'))
+
+
+    # @app.route('/admin/search/chapters')
+    # @login_required
+    # def admin_search_chapters():
+    #     query = request.args.get('chapter_q', '')
+    #     if query:
+    #         search_results = Chapter.query.join(Subject)\
+    #             .filter(
+    #                 db.or_(
+    #                     Chapter.name.ilike(f'%{query}%'),
+    #                     Chapter.description.ilike(f'%{query}%'),
+    #                     Subject.name.ilike(f'%{query}%')
+    #                 )
+    #             ).all()
+    #         return render_template('chapter_search_results.html',
+    #                             results=search_results, 
+    #                             query=query)
+    #     return redirect(url_for('admin_dashboard'))
+
+    # @app.route('/admin/search/subjects')
+    # @login_required
+    # def admin_search_subjects():
+    #     query = request.args.get('subject_q', '')
+    #     if query:
+    #         search_results = Subject.query\
+    #             .filter(
+    #                 db.or_(
+    #                     Subject.name.ilike(f'%{query}%'),
+    #                     Subject.description.ilike(f'%{query}%')
+    #                 )
+    #             ).all()
+    #         return render_template('subject_search_results.html',
+    #                             results=search_results, 
+    #                             query=query)
+    #     return redirect(url_for('admin_dashboard'))
+
+    # @app.route('/admin/search/questions')
+    # @login_required
+    # def admin_search_questions():
+    #     query = request.args.get('question_q', '')
+    #     if query:
+    #         search_results = Question.query.join(Quiz).join(Chapter).join(Subject)\
+    #             .filter(
+    #                 db.or_(
+    #                     Question.title.ilike(f'%{query}%'),
+    #                     Question.question.ilike(f'%{query}%'),
+    #                     Chapter.name.ilike(f'%{query}%'),
+    #                     Subject.name.ilike(f'%{query}%')
+    #                 )
+    #             ).all()
+    #         return render_template('question_search_results.html',
+    #                             results=search_results, 
+    #                             query=query)
+    #     return redirect(url_for('admin_dashboard'))
+
+    
+    
     @app.route('/admin/search/users')
     @login_required
     def admin_search_users():
@@ -723,29 +842,45 @@ def configure_routes(app):
             
         #     today = date.today()
         #     return render_template('view_quiz.html', quiz_data=quiz_data, today=today)
-
     @app.route('/search')
     @login_required
     def search_quizzes():
         query = request.args.get('q', '')
         if query:
-            # Search in quizzes, chapters, and subjects
-            search_results = db.session.query(Quiz, Chapter, Subject)\
-                .join(Chapter, Quiz.chapter_id == Chapter.id)\
-                .join(Subject, Chapter.subject_id == Subject.id)\
+            # Search for exact chapters first
+            chapters = Chapter.query\
+                .join(Subject)\
                 .filter(
                     db.or_(
-                        Chapter.name.ilike(f'%{query}%'),
-                        Subject.name.ilike(f'%{query}%'),
-                        Chapter.description.ilike(f'%{query}%'),
-                        Subject.description.ilike(f'%{query}%')
+                        Chapter.name.ilike(f'%{query}%'),  # Match chapter name
+                        Chapter.description.ilike(f'%{query}%')  # Match chapter description
                     )
                 ).all()
-            
-            return render_template('search_results.html', 
-                                results=search_results, 
+
+            # Search for quizzes that belong to the exact matching chapter
+            quizzes = Quiz.query\
+                .join(Chapter)\
+                .filter(
+                    db.or_(
+                        Quiz.remarks.ilike(f'%{query}%'),  # Match quiz remarks
+                        Quiz.chapter_id.in_([chapter.id for chapter in chapters])  # Match only quizzes from found chapters
+                    )
+                ).all()
+
+            # Debug prints
+            print(f"\nSearch query: {query}")
+            print(f"Found chapters: {[chapter.name for chapter in chapters]}")
+            print(f"Found quizzes: {[quiz.chapter.name for quiz in quizzes]}")
+
+            return render_template('search_results.html',
+                                chapters=chapters,
+                                quizzes=quizzes,
                                 query=query)
         return redirect(url_for('user_dashboard'))
+
+
+  
+  
     @app.route('/scores')
     @login_required
     def user_scores():
@@ -1046,6 +1181,7 @@ def configure_routes(app):
         
         # flash('Question deleted successfully!', 'success')
         return redirect(url_for('view_quiz_questions', quiz_id=quiz_id))
+    
     @app.route('/edit_subject/<int:subject_id>', methods=['GET', 'POST'])
     def edit_subject(subject_id):
         subject = Subject.query.get_or_404(subject_id)

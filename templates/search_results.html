@@ -13,33 +13,77 @@
     <div class="container mt-4">
         <h2>Search Results for "{{ query }}"</h2>
         
-        {% if results %}
+        <!-- Chapters Section -->
+        {% if chapters %}
+            <h3 class="mt-4 mb-3">Chapters</h3>
             <div class="row row-cols-1 row-cols-md-3 g-4 mt-2">
-                {% for quiz, chapter, subject in results %}
+                {% for chapter in chapters %}
                 <div class="col">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">{{ subject.name }}</h5>
+                            <h5 class="card-title">{{ chapter.subject.name }}</h5>
                             <h6 class="card-subtitle mb-2 text-muted">{{ chapter.name }}</h6>
+                            <p class="card-text">
+                                {% if chapter.description %}
+                                    {{ chapter.description }}
+                                {% else %}
+                                    <small class="text-muted">No description available</small>
+                                {% endif %}
+                            </p>
+                            <div class="mt-auto">
+                                <a href="{{ url_for('edit_chapter', chapter_id=chapter.id) }}" 
+                                   class="btn btn-outline-primary">View Chapter</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Quizzes Section -->
+        {% if quizzes %}
+            <h3 class="mt-4 mb-3">Quizzes</h3>
+            <div class="row row-cols-1 row-cols-md-3 g-4 mt-2">
+                {% for quiz in quizzes %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ quiz.chapter.subject.name }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ quiz.chapter.name }}</h6>
                             <p class="card-text">
                                 <small class="text-muted">
                                     Date: {{ quiz.date_of_quiz.strftime('%Y-%m-%d') }}<br>
                                     Duration: {{ quiz.time_duration }}
                                 </small>
                             </p>
-                            <a href="{{ url_for('view_quiz_details', quiz_id=quiz.id) }}" 
-                               class="btn btn-primary">View Quiz</a>
+                            <div class="mt-auto">
+                                <a href="{{ url_for('view_quiz_details', quiz_id=quiz.id) }}" 
+                                   class="btn btn-primary">View Quiz</a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-        {% else %}
+        {% endif %}
+
+        <!-- No Results Message -->
+        {% if not chapters and not quizzes %}
             <div class="alert alert-info mt-4">
+                <i class="fas fa-info-circle me-2"></i>
                 No results found for "{{ query }}". Try different keywords.
             </div>
         {% endif %}
+
+        <!-- Back Button -->
+        <div class="mt-4 mb-4">
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
     </div>
+
     <footer class="bg-light py-4 mt-auto">
         <div class="container text-center">
             <p class="text-muted mb-0">© 2024 Quiz Platform by Smriti S 23f2000599. All rights reserved.</p>
