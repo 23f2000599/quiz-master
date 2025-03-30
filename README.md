@@ -104,46 +104,6 @@ The application will be available at **`http://127.0.0.1:5000/`**
 
 ---
 
-## **Project Structure**  
-```
-quiz-platform/
-│
-├── static/            # Static assets (CSS, JS, images)
-│   ├── css/
-│   ├── js/
-│   └── images/
-│
-├── templates/         # HTML templates for different views
-│   ├── admin/
-│   ├── student/
-│   └── common/
-│
-├── models/            # Database models
-│   └── __init__.py
-│
-├── routes/            # Flask routes for different features
-│   ├── admin_routes.py
-│   ├── student_routes.py
-│   └── auth_routes.py
-│
-├── config.py          # Application configuration
-├── apis.py            # API endpoints
-├── requirements.txt   # Required Python dependencies
-├── .env.example       # Sample environment variables
-└── README.md          # Project documentation
-```
-
----
-
-## **Future Enhancements**  
-✅ **Leaderboards & Performance Tracking**  
-✅ **Quiz Categorization & Tags**  
-✅ **Timer-based Quiz Attempts**  
-✅ **Multiple Question Types (Fill in the blanks, True/False, etc.)**  
-✅ **Dark Mode UI**  
-
----
-
 ## **Contributing**  
 This project was developed as part of **Modern Application Development - 1 (MAD-1)**. Any contributions or suggestions are welcome! Feel free to fork the repository and submit a pull request.  
 
