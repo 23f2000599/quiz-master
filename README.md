@@ -14,17 +14,16 @@ A **web-based quiz management system** built with Flask that enables administrat
 
 ### **Admin Features**  
 ✅ **Subject Management**  
-- Create, edit, and delete subjects (with cascading deletion of related content)  
+- Create, edit, and delete subjects.
 
 ✅ **Chapter Management**  
-- Add, edit, and delete chapters under subjects  
+- Create, edit, and delete chapters under subjects .
 
 ✅ **Quiz Management**  
 - Create quizzes for specific chapters  
 - Set quiz date and duration  
 - Edit or delete quizzes  
-- Add multiple-choice questions (MCQs) and options  
-- View quiz results and statistics  
+- View overall performance summary of all users. 
 
 ### **Student Features**  
 ✅ **User Authentication**  
@@ -53,7 +52,6 @@ A **web-based quiz management system** built with Flask that enables administrat
 
 ### **Database:**  
 - SQLite (Development)  
-- MySQL (Production)  
 
 ---
 
@@ -61,8 +59,8 @@ A **web-based quiz management system** built with Flask that enables administrat
 
 ### **1. Clone the Repository**  
 ```bash
-git clone https://github.com/yourusername/quiz-platform.git
-cd quiz-platform
+git clone https://github.com/23f2000599/quiz-master.git
+cd quiz-master
 ```
 
 ### **2. Create and Activate a Virtual Environment**  
@@ -82,21 +80,15 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-### **4. Set Up Environment Variables**  
-Create a `.env` file in the root directory and add the following:  
-```
-SECRET_KEY=your_secret_key
-DATABASE_URL=your_database_url
-```
 
-### **5. Set Up Database**  
+### **4. Set Up Database**  
 ```bash
 flask db init
 flask db migrate
 flask db upgrade
 ```
 
-### **6. Run the Application**  
+### **5. Run the Application**  
 ```bash
 flask run
 ```
