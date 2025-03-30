@@ -57,6 +57,8 @@ A **web-based quiz management system** built with Flask that enables administrat
 
 ## **Installation Guide**  
 
+(The env, pyache and instance folders have been added to gitignore and hence not added to github)
+
 ### **1. Clone the Repository**  
 ```bash
 git clone https://github.com/23f2000599/quiz-master.git
@@ -73,8 +75,6 @@ For **Linux/Mac**:
 ```bash
 python3 -m venv env
 source env/bin/activate
-
-(The env, pyache and instance folders have been added to gitignore and hence not added to github)
 ```
 
 ### **3. Install Dependencies**  
