@@ -28,13 +28,13 @@
             <a href="{{ url_for('add_quiz') }}" class="btn btn-primary">Add New Quiz</a>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
             {% endif %}
-        {% endwith %}
+        {% endwith %} -->
 
         {% if quizzes %}
             {% for quiz in quizzes %}

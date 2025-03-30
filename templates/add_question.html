@@ -11,13 +11,13 @@
         <h2>Add Question to Quiz</h2>
         <h4>{{ quiz.chapter.name }} - {{ quiz.date_of_quiz.strftime('%B %d, %Y') }}</h4>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
             {% endif %}
-        {% endwith %}
+        {% endwith %} -->
 
         <form method="POST" class="mt-4">
             <div class="mb-3">
