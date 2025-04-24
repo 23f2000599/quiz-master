@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Subject</title>
+    <title>Add Chapter</title>
     <style>
         .form-container {
             max-width: 500px;
@@ -42,7 +42,7 @@
     {% include 'admin_navbar.html' %}
 
     <div class="form-container">
-        <h2>Add New Subject</h2>
+        <h2>Add New Chapter</h2>
         <form method="POST">
             <div class="form-group">
                 <label for="name">Chapter Name:</label>
@@ -50,7 +50,7 @@
                 <label for="description">Description</label>
                 <input type="text" id="description" name="description" required>
             </div>
-            <button type="submit" class="submit-btn">Add Subject</button>
+            <button type="submit" class="submit-btn">Add Chapter</button>
         </form>
     </div>
     <footer class="bg-light py-4 mt-auto">
