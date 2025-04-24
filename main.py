@@ -26,7 +26,6 @@ with app.app_context():
             dob="2000-01-01",  
         )
         
-        # Add to database
         db.session.add(admin_user)
         db.session.commit()
         print("Admin user created")
