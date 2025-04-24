@@ -29,10 +29,6 @@
                                     <small class="text-muted">No description available</small>
                                 {% endif %}
                             </p>
-                            <div class="mt-auto">
-                                <a href="{{ url_for('edit_chapter', chapter_id=chapter.id) }}" 
-                                   class="btn btn-outline-primary">View Chapter</a>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -55,10 +51,6 @@
                                     Duration: {{ quiz.time_duration }}
                                 </small>
                             </p>
-                            <div class="mt-auto">
-                                <a href="{{ url_for('view_quiz_details', quiz_id=quiz.id) }}" 
-                                   class="btn btn-primary">View Quiz</a>
-                            </div>
                         </div>
                     </div>
                 </div>
